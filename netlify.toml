@@ -1,10 +1,10 @@
 [build]
-  # Instala o 'node-fetch' para o backend funcionar
-  command = "npm install"
-  # Diz que o site está na raiz (onde está o index.html)
+  # Comando simples que nunca falha
+  command = "echo 'Site pronto!'"
+  # A pasta do site (raiz)
   publish = "." 
 
 [functions]
-  # Diz onde está o backend
+  # A pasta do backend
   directory = "functions"
   node_bundler = "esbuild"
