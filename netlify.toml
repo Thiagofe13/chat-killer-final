@@ -1,7 +1,10 @@
 [build]
-  publish = "public"
-  command = "echo 'Building static site...'"  # Comando simples, pois é HTML puro
+  # Instala o 'node-fetch' para o backend funcionar
+  command = "npm install"
+  # Diz que o site está na raiz (onde está o index.html)
+  publish = "." 
 
 [functions]
+  # Diz onde está o backend
   directory = "functions"
   node_bundler = "esbuild"
