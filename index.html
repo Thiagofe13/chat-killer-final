@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Chat Sem Censura (Killer Skynet)</title>
+    <style>
+        /* Estilo Dark Mode Simples */
+        body { background-color: #1e1e1e; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #282c34; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; min-height: 90vh; }
+        h1 { color: #61dafb; text-align: center; font-size: 24px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 10px; margin-bottom: 15px; border: 1px solid #444; border-radius: 4px; background: #3c4049; }
+        textarea { width: 100%; font-size: 16px; padding: 10px; border: 1px solid #61dafb; border-radius: 4px; background: #282c34; color: white; resize: none; }
+        button { width: 100%; padding: 10px 15px; font-size: 16px; background-color: #0070f3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        .user-msg { background-color: #0070f3; color: white; margin-left: auto; margin-right: 0; }
+        .ai-msg { background-color: #f0f0f0; color: #333; margin-right: auto; margin-left: 0; }
+        .msg-bubble { padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Chat Sem Censura (Killer Skynet)</h1>
+        <div id="chat-window">
+            </div>
+        <textarea id="message-input" rows="4" placeholder="Manda uma cantada, um desafio de gíria ou pergunta o preço..."></textarea>
+        <button id="send-button">Enviar Mensagem</button>
+        <p style="font-size: 10px; color: #999; text-align: center; margin-top: 5px;">
+            *Powered by DeepInfra Mistral-7B - Não pergunte sobre atividades ilegais.
+        </p>
+    </div>
+
+    <script>
+        const input = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const chatWindow = document.getElementById('chat-window');
+        let chatHistory = [];
+
+        function appendMessage(role, content) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('msg-bubble');
+            bubble.textContent = content;
+            if (role === 'user') {
+                bubble.classList.add('user-msg');
+                bubble.style.marginLeft = 'auto';
+            } else {
+                bubble.classList.add('ai-msg');
+                bubble.style.marginRight = 'auto';
+            }
+            chatWindow.appendChild(bubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 1. Mostrar mensagem do usuário
+            appendMessage('user', message);
+            chatHistory.push({ role: 'user', content: message });
+            input.value = '';
+            
+            // 2. Mostrar loading
+            const loadingBubble = document.createElement('div');
+            loadingBubble.classList.add('msg-bubble', 'ai-msg');
+            loadingBubble.textContent = 'Pensando...';
+            loadingBubble.id = 'loading';
+            chatWindow.appendChild(loadingBubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            sendButton.disabled = true;
+
+            try {
+                // 3. Chamar a Netlify Function (Backend)
+                const response = await fetch('/.netlify/functions/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message }), // Enviando apenas a última mensagem para simplificar
+                });
+
+                const data = await response.json();
+                
+                // 4. Limpar Loading
+                loadingBubble.remove();
+                sendButton.disabled = false;
+
+                if (response.status !== 200 || data.error) {
+                    appendMessage('system', `Erro: ${data.error || 'Falha na comunicação.'}`);
+                    return;
+                }
+
+                // 5. Mostrar resposta da IA
+                appendMessage('assistant', data.text);
+                
+                // Adicionar a resposta da IA ao histórico para futuras consultas (Embora a função só use a última)
+                chatHistory.push({ role: 'assistant', content: data.text });
+
+
+            } catch (error) {
+                loadingBubble.remove();
+                sendButton.disabled = false;
+                appendMessage('system', 'Erro de rede. Tente novamente.');
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

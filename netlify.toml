@@ -1,0 +1,7 @@
+[build]
+  publish = "public"
+  command = "echo 'Building static site...'"  # Comando simples, pois é HTML puro
+
+[functions]
+  directory = "functions"
+  node_bundler = "esbuild"
